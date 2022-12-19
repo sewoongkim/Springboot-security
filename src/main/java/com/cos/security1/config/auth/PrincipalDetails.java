@@ -1,12 +1,16 @@
-package com.cos.security1.auth;
+package com.cos.security1.config.auth;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.cos.security1.model.User;
+
+import lombok.Data;
 
 //시큐리티가 /login을 주소 요청이 오면 낚아채서 로그인을 진행합니다. 
 //로그인을 진행이 완료가 되면 시큐리티  session을 만들어 줍니다. (security contextHolder)
@@ -16,25 +20,20 @@ import com.cos.security1.model.User;
 
 // Security Session => Authentication => UserDetails Type이 되어야 함
 
-public class PrincipalDetails implements UserDetails{
+@Data
+public class PrincipalDetails implements UserDetails, OAuth2User{
 
 	private User	user; // 콤포지션
+	private Map<String,Object> attributes;
 	
+	//일반 로그인
 	public PrincipalDetails(User user) {
 		this.user = user;
 	}
-	
-	// 해당 User의 권한을 리터하는 곳
-	@Override
-	public Collection<? extends GrantedAuthority> getAuthorities() {
-		Collection<GrantedAuthority> collect = new ArrayList<>();
-		collect.add(new GrantedAuthority() {
-			@Override
-			public String getAuthority() {
-				return user.getRole();
-			}
-		});
-		return collect;
+	//OAuth 로그인
+	public PrincipalDetails(User user, Map<String,Object> attributes) {
+		this.user = user;
+		this.attributes = attributes;
 	}
 
 	@Override
@@ -66,5 +65,31 @@ public class PrincipalDetails implements UserDetails{
 	public boolean isEnabled() {
 		return true;
 	}
+
+	// 해당 User의 권한을 리터하는 곳
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		Collection<GrantedAuthority> collect = new ArrayList<>();
+		collect.add(new GrantedAuthority() {
+			@Override
+			public String getAuthority() {
+				return user.getRole();
+			}
+		});
+		return collect;
+	}
+
+	@Override
+	public Map<String, Object> getAttributes() {
+		// TODO Auto-generated method stub
+		return attributes;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }
